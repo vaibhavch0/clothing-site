@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import Listing from "@/models/Listing";
 import ListingCard from "@/components/ListingCard";
+import { PUBLIC_FIELDS } from "@/lib/queries";
 import DbNotice from "@/components/DbNotice";
 import { CATEGORIES, FREE_SHIPPING_MIN, money } from "@/lib/constants";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 async function getData() {
   try {
     await connectDB();
-    const docs = await Listing.find({ status: "available" }).select("-images").sort({ createdAt: -1 }).limit(40).lean();
+    const docs = await Listing.find({ status: "available" }).select(PUBLIC_FIELDS).sort({ createdAt: -1 }).limit(40).lean();
     return { listings: JSON.parse(JSON.stringify(docs)) };
   } catch (e) {
     return { error: e.message };
@@ -24,10 +25,13 @@ export default async function Home() {
   const { listings = [], error } = await getData();
   const hero = listings.slice(0, 3);
   const justIn = listings.slice(0, 10);
-  const tiles = ["Outerwear", "Dresses", "Shoes", "Streetwear"].map((c, i) => ({
-    c, i, item: listings.find((l) => l.category === c) || listings[i],
-  }));
+  const counts = {};
+  listings.forEach((l) => (counts[l.category] = (counts[l.category] || 0) + 1));
+  const stocked = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  const tileCats = [...new Set([...stocked, "Outerwear", "Dresses", "Shoes", "Streetwear", "Tops", "Bottoms"])].slice(0, 4);
+  const tiles = tileCats.map((c, i) => ({ c, i, item: listings.find((l) => l.category === c) }));
   const budget = listings.filter((l) => l.price <= 1500).slice(0, 4);
+  const maxOff = Math.max(0, ...listings.map((l) => l.discountPercent || 0));
 
   return (
     <>
@@ -51,22 +55,32 @@ export default async function Home() {
 
             {/* Collage of real products */}
             <div className="relative mx-auto hidden h-[480px] w-full max-w-[520px] lg:block">
-              {hero.map((l, i) => (
-                <Link
-                  key={l._id}
-                  href={`/listing/${l._id}`}
-                  className="absolute w-[56%] overflow-hidden bg-white p-2 shadow-lift transition duration-500 hover:z-10 hover:scale-105"
-                  style={[
-                    { left: 0, top: "6%", transform: "rotate(-5deg)" },
-                    { right: 0, top: 0, transform: "rotate(4deg)" },
-                    { left: "22%", bottom: 0, transform: "rotate(-1deg)" },
-                  ][i]}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/api/listings/${l._id}/image/0`} alt={l.title} className="aspect-[3/4] w-full object-cover" />
-                  <div className="flex justify-between px-1 pb-0.5 pt-2 text-xs font-bold"><span className="truncate">{l.title}</span><span>{money(l.price)}</span></div>
-                </Link>
-              ))}
+              {[0, 1, 2].map((i) => {
+                const l = hero[i];
+                const style = [
+                  { left: 0, top: "6%", transform: "rotate(-5deg)" },
+                  { right: 0, top: 0, transform: "rotate(4deg)" },
+                  { left: "22%", bottom: 0, transform: "rotate(-1deg)" },
+                ][i];
+                const frame = "absolute w-[56%] overflow-hidden bg-white p-2 shadow-lift transition duration-500 hover:z-10 hover:scale-105";
+                return l ? (
+                  <Link key={l._id} href={`/listing/${l._id}`} className={frame} style={style}>
+                    <div className="relative aspect-[3/4] w-full overflow-hidden bg-line">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/api/listings/${l._id}/image/0`} alt={l.title} className="absolute inset-0 h-full w-full object-cover" />
+                    </div>
+                    <div className="flex justify-between gap-2 px-1 pb-0.5 pt-2 text-xs font-bold"><span className="truncate">{l.title}</span><span>{money(l.price)}</span></div>
+                  </Link>
+                ) : (
+                  <Link key={i} href="/shop" className={frame} style={style}>
+                    <div className="flex aspect-[3/4] w-full flex-col items-center justify-center bg-ink text-center">
+                      <span className="display text-7xl text-lime">S.</span>
+                      <span className="mt-3 text-[10px] font-extrabold uppercase tracking-[0.25em] text-white/70">More drops soon</span>
+                    </div>
+                    <div className="px-1 pb-0.5 pt-2 text-xs font-bold">Shop new in →</div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -93,13 +107,15 @@ export default async function Home() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {tiles.map(({ c, i, item }) => (
               <Link key={c} href={`/shop?category=${c}`} className={`group relative aspect-[3/4] overflow-hidden ${TILE_BG[i]}`}>
-                {item && (
+                {item ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={`/api/listings/${item._id}/image/0`} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                ) : (
+                  <span aria-hidden className="display absolute inset-0 flex items-center justify-center text-[9rem] text-white/50 transition duration-700 group-hover:scale-110">{c[0]}</span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-16 sm:p-5">
                   <p className="display break-words text-[clamp(0.95rem,4.6vw,1.5rem)] text-white sm:text-3xl lg:text-4xl">{c}</p>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-lime sm:text-xs">Shop now →</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-lime sm:text-xs">{item ? "Shop now →" : "Coming soon"}</p>
                 </div>
               </Link>
             ))}
@@ -133,20 +149,20 @@ export default async function Home() {
       {/* PROMO BANNER */}
       {!error && (
         <section className="mt-16 grid gap-3 md:grid-cols-2">
-          <Link href="/shop?max=1500&sort=low" className="group relative flex min-h-[320px] items-end overflow-hidden bg-ink p-8 text-white">
+          <Link href={budget.length ? "/shop?max=1500&sort=low" : "/shop"} className="group relative flex min-h-[320px] items-end overflow-hidden bg-ink p-8 text-white">
             <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-lime/90 transition duration-500 group-hover:scale-110" />
             <div className="relative">
-              <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-lime">Budget finds</p>
-              <p className="display mt-3 text-5xl sm:text-6xl">Under<br />{money(1500)}</p>
-              <p className="mt-4 text-sm font-bold underline underline-offset-4">Shop now</p>
+              <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-lime">{budget.length ? "Budget finds" : "On every big order"}</p>
+              <p className="display mt-3 text-5xl sm:text-6xl">{budget.length ? <>Under<br />{money(1500)}</> : <>Free<br />shipping</>}</p>
+              <p className="mt-4 text-sm font-bold underline underline-offset-4">{budget.length ? "Shop now" : `Over ${money(FREE_SHIPPING_MIN)} · Shop now`}</p>
             </div>
           </Link>
-          <Link href="/shop?category=Vintage" className="group relative flex min-h-[320px] items-end overflow-hidden bg-[#E8CFC8] p-8">
+          <Link href={maxOff ? "/shop?sale=1" : "/shop"} className="group relative flex min-h-[320px] items-end overflow-hidden bg-[#E8CFC8] p-8">
             <div className="absolute -left-10 -top-16 h-72 w-72 rounded-full bg-white/60 transition duration-500 group-hover:scale-110" />
             <div className="relative">
-              <p className="text-xs font-extrabold uppercase tracking-[0.25em]">Retro revival</p>
-              <p className="display mt-3 text-5xl sm:text-6xl">Vintage<br />picks</p>
-              <p className="mt-4 text-sm font-bold underline underline-offset-4">Explore</p>
+              <p className={`text-xs font-extrabold uppercase tracking-[0.25em] ${maxOff ? "text-sale" : ""}`}>{maxOff ? "Sale is on" : "Just landed"}</p>
+              <p className="display mt-3 text-5xl sm:text-6xl">{maxOff ? <>Up to<br />{maxOff}% off</> : <>New<br />season</>}</p>
+              <p className="mt-4 text-sm font-bold underline underline-offset-4">{maxOff ? "Shop sale" : "Explore"}</p>
             </div>
           </Link>
         </section>

@@ -104,7 +104,7 @@ export default function Navbar() {
         {search && (
           <form onSubmit={go} className="border-t border-line bg-white px-4 py-4 sm:px-8">
             <div className="mx-auto flex max-w-3xl gap-3">
-              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for jackets, brands, styles…" className="input !rounded-full !py-3.5 text-base" />
+              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for jackets, brands, styles…" className="input !py-3.5 text-base" />
               <button className="btn btn-primary px-7">Search</button>
             </div>
           </form>

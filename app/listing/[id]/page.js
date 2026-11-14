@@ -8,6 +8,7 @@ import ProductActions from "@/components/ProductActions";
 import ListingCard from "@/components/ListingCard";
 import { getSession } from "@/lib/auth";
 import { priceInfo } from "@/lib/pricing";
+import { PUBLIC_DETAIL_FIELDS, PUBLIC_FIELDS } from "@/lib/queries";
 import { money, SHIPPING_FEE, FREE_SHIPPING_MIN } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function ListingPage(props) {
   const params = await props.params;
   if (!mongoose.isValidObjectId(params.id)) notFound();
   await connectDB();
-  const doc = await Listing.findById(params.id).select("-images").lean();
+  const doc = await Listing.findById(params.id).select(PUBLIC_DETAIL_FIELDS).lean();
   const session = await getSession();
   const live = doc && (doc.status === "available" || doc.status === "sold");
   if (!doc || (!live && session?.role !== "admin")) notFound();
@@ -24,7 +25,7 @@ export default async function ListingPage(props) {
   const more = JSON.parse(
     JSON.stringify(
       await Listing.find({ category: l.category, status: "available", _id: { $ne: l._id } })
-        .select("-images").sort({ createdAt: -1 }).limit(4).lean()
+        .select(PUBLIC_FIELDS).sort({ createdAt: -1 }).limit(4).lean()
     )
   );
 

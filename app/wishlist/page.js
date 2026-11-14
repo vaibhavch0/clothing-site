@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useCart, useWishlist } from "@/components/Providers";
+import { useCart, useToast, useWishlist } from "@/components/Providers";
 import { money } from "@/lib/constants";
 
 export default function Wishlist() {
   const { wish, toggleWish } = useWishlist();
   const { add, items } = useCart();
+  const notify = useToast();
 
   if (!wish.length)
     return (
@@ -28,7 +29,7 @@ export default function Wishlist() {
             </Link>
             <div className="mt-3 flex justify-between gap-2 text-[13px]"><p className="truncate font-semibold">{w.title}</p><p className="font-extrabold">{money(w.price)}</p></div>
             <div className="mt-3 flex gap-2">
-              <button onClick={() => add(w)} disabled={items.some((i) => i.id === w.id)} className="btn btn-primary flex-1 !rounded-none !py-2.5 text-xs uppercase tracking-wider">
+              <button onClick={() => { add(w); notify("Added to your bag", { href: "/cart", label: "View bag" }); }} disabled={items.some((i) => i.id === w.id)} className="btn btn-primary flex-1 !rounded-none !py-2.5 text-xs uppercase tracking-wider">
                 {items.some((i) => i.id === w.id) ? "In bag" : "Add to bag"}
               </button>
               <button onClick={() => toggleWish(w)} className="btn btn-ghost !rounded-none !px-3 !py-2.5 text-xs">Remove</button>

@@ -6,7 +6,7 @@ export async function GET() {
   try {
     if (!(await requireRole("admin"))) return Response.json({ error: "Admin access only" }, { status: 403 });
     void User;
-    const orders = await Order.find().populate("buyer", "name email").populate("items.seller", "name").sort({ createdAt: -1 }).limit(100).lean();
+    const orders = await Order.find().populate("buyer", "name email").populate("items.seller", "name").sort({ createdAt: -1 }).limit(500).lean();
     return Response.json({ orders });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });

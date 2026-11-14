@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./Providers";
@@ -19,14 +20,9 @@ export default function AuthForm({ mode }) {
     e.preventDefault();
     setErr("");
     setBusy(true);
-    const res = await fetch(`/api/auth/${mode}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(f),
-    });
-    const data = await res.json();
+    const { ok, data } = await api(`/api/auth/${mode}`, { method: "POST", body: f });
     setBusy(false);
-    if (!res.ok) return setErr(data.error || "Something went wrong.");
+    if (!ok) return setErr(data.error || "Something went wrong.");
     setUser(data.user);
     router.push(next === "/dashboard" ? (data.user.role === "admin" ? "/admin" : data.user.role === "seller" ? "/seller" : "/account") : next);
     router.refresh();
@@ -35,7 +31,7 @@ export default function AuthForm({ mode }) {
   return (
     <div className="mx-auto max-w-md py-16">
       <div className="card p-8 sm:p-10">
-        <h1 className="text-4xl font-bold">{signup ? "Join Styio" : "Welcome back"}</h1>
+        <h1 className="display text-5xl">{signup ? "Join Styio" : "Welcome back"}</h1>
         <p className="mt-2 text-sm text-muted">{signup ? "Create a free account to shop." : "Log in to your account."}</p>
         <form onSubmit={submit} className="mt-8 space-y-4">
           {signup && (
@@ -48,7 +44,7 @@ export default function AuthForm({ mode }) {
             <input className="input" type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
           <div><label className="label">Password</label>
             <input className="input" type="password" required minLength={8} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
-          {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
+          {err && <p className="rounded-none bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
           <button disabled={busy} className="btn btn-primary w-full py-3.5">{busy ? "…" : signup ? "Create account" : "Log in"}</button>
         </form>
         <p className="mt-6 text-center text-sm text-muted">

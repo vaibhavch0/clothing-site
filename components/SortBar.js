@@ -9,6 +9,7 @@ export default function SortBar() {
   const set = (patch) => {
     const p = new URLSearchParams(sp.toString());
     Object.entries(patch).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));
+    p.delete("page");
     router.push(`/shop?${p.toString()}`);
   };
   return <SortSelect sp={sp} set={set} />;

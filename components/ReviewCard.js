@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { api } from "@/lib/api";
 import { CATEGORIES, SIZES, money } from "@/lib/constants";
 
 // Admin edit form for one product. Used both for the review queue and for editing live items.
@@ -23,14 +24,12 @@ export default function ReviewCard({ listing: l, onDone }) {
   const send = async (action) => {
     setErr("");
     setBusy(action || "save");
-    const res = await fetch(`/api/admin/listings/${l._id}`, {
+    const { ok, data } = await api(`/api/admin/listings/${l._id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...f, mrp: Number(mrp), discountPercent: Number(disc) || 0, adminNote: note, action }),
+      body: { ...f, mrp: Number(mrp), discountPercent: Number(disc) || 0, adminNote: note, action },
     });
-    const data = await res.json();
     setBusy("");
-    if (!res.ok) return setErr(data.error || "Something went wrong.");
+    if (!ok) return setErr(data.error || "Something went wrong.");
     onDone();
   };
 
@@ -40,7 +39,7 @@ export default function ReviewCard({ listing: l, onDone }) {
         <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
           {Array.from({ length: l.imageCount || 1 }).map((_, n) => (
             <a key={n} href={`/api/listings/${l._id}/image/${n}`} target="_blank" rel="noreferrer"
-              className="relative block aspect-[4/5] overflow-hidden rounded-2xl bg-line">
+              className="relative block aspect-[4/5] overflow-hidden rounded-none bg-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/listings/${l._id}/image/${n}`} alt="" className="absolute inset-0 h-full w-full object-cover" />
             </a>
@@ -96,7 +95,7 @@ export default function ReviewCard({ listing: l, onDone }) {
           )}
         </div>
 
-        {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
+        {err && <p className="rounded-none bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
 
         <div className="flex flex-wrap gap-2">
           {!live ? (

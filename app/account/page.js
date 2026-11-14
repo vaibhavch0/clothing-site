@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/Providers";
 import OrderStatus from "@/components/OrderStatus";
+import { formatAddress, orderNo } from "@/components/OrderBits";
 import { money } from "@/lib/constants";
 
 export default function Account() {
@@ -12,9 +14,9 @@ export default function Account() {
   const [err, setErr] = useState("");
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/orders");
-    if (res.ok) setOrders((await res.json()).purchases);
-    else setErr((await res.json()).error || "Couldn't load orders.");
+    const { ok, data } = await api("/api/orders");
+    if (ok) setOrders(data.purchases || []);
+    else setErr(data.error || "Couldn't load orders.");
     setLoading(false);
   }, []);
   useEffect(() => { if (user) load(); else setLoading(false); }, [user, load]);
@@ -22,14 +24,15 @@ export default function Account() {
   if (!user)
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">My account</h1>
+        <h1 className="display text-4xl">My account</h1>
         <p className="mt-2 text-sm text-muted">Log in to see your orders.</p>
         <Link href="/login?next=/account" className="btn btn-primary mt-6">Log in</Link>
       </div>
     );
 
   const confirm = async (orderId, itemId) => {
-    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemId, status: "delivered" }) });
+    const { ok, data } = await api(`/api/orders/${orderId}`, { method: "PATCH", body: { itemId, status: "delivered" } });
+    if (!ok) alert(data.error || "Couldn't update the order.");
     load();
   };
 
@@ -42,7 +45,7 @@ export default function Account() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Customer</span>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">Hi, {user.name}</h1>
+          <h1 className="display mt-3 text-5xl sm:text-6xl">Hi, {user.name}</h1>
         </div>
         <Link href="/shop" className="btn btn-lime">Keep shopping</Link>
       </div>
@@ -57,10 +60,10 @@ export default function Account() {
       </div>
       <p className="mt-3 text-sm text-muted">Total spent: <span className="font-semibold text-ink">{money(spent)}</span></p>
 
-      <h2 className="mt-10 text-2xl font-bold">My orders</h2>
+      <h2 className="display mt-12 text-3xl">My orders</h2>
       <div className="mt-4 space-y-4">
         {loading && <p className="text-sm text-muted">Loading…</p>}
-        {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
+        {err && <p className="rounded-none bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
         {!loading && !err && orders.length === 0 && (
           <div className="card p-10 text-center">
             <p className="font-display text-xl font-bold">No orders yet</p>
@@ -71,13 +74,13 @@ export default function Account() {
         {orders.map((o) => (
           <div key={o._id} className="card p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span className="font-semibold">Order · {new Date(o.createdAt).toLocaleDateString()}</span>
+              <span className="font-semibold">Order {orderNo(o._id)} · {new Date(o.createdAt).toLocaleDateString()}{o.testMode !== false && <span className="ml-2 text-xs font-bold text-red-700">TEST</span>}</span>
               <span className="font-display font-bold">{money(o.total)}</span>
             </div>
             <div className="mt-4 space-y-4">
               {o.items.map((i) => (
                 <div key={i._id} className="flex flex-wrap items-center gap-4">
-                  <Link href={`/listing/${i.listing}`} className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-line">
+                  <Link href={`/listing/${i.listing}`} className="h-20 w-16 shrink-0 overflow-hidden rounded-none bg-line">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`/api/listings/${i.listing}/image/0`} alt="" className="h-full w-full object-cover" />
                   </Link>
@@ -92,8 +95,8 @@ export default function Account() {
                 </div>
               ))}
             </div>
-            <p className="mt-4 rounded-xl bg-paper p-3 text-xs text-muted">
-              Shipping to {o.shipping.name}, {o.shipping.address}, {o.shipping.city} {o.shipping.zip}
+            <p className="mt-4 rounded-none bg-paper p-3 text-xs text-muted">
+              Shipping to {formatAddress(o.shipping)}
             </p>
           </div>
         ))}

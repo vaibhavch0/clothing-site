@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useCart } from "@/components/Providers";
+import { useCart, useCartSync } from "@/components/Providers";
 import { money, shippingFor, shipLabel, FREE_SHIPPING_MIN } from "@/lib/constants";
 
 export default function Cart() {
   const { items, remove, ready } = useCart();
+  const { notice } = useCartSync();
   const subtotal = items.reduce((a, i) => a + i.price, 0);
   const ship = shippingFor(subtotal);
   const left = FREE_SHIPPING_MIN - subtotal;
@@ -22,6 +23,7 @@ export default function Cart() {
   return (
     <div className="py-10">
       <h1 className="display text-5xl sm:text-6xl">Your bag <span className="text-muted">({items.length})</span></h1>
+      {notice && <p className="mt-4 border-l-4 border-sale bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{notice}</p>}
 
       <div className="mt-6 bg-paper p-4">
         <p className="text-sm font-bold">

@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/Providers";
 import OrderStatus from "@/components/OrderStatus";
+import { TestOrderBanner, formatAddress, orderNo } from "@/components/OrderBits";
 import { money } from "@/lib/constants";
 
 const STATUS = {
@@ -20,9 +22,9 @@ export default function Seller() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const [a, b] = await Promise.all([fetch("/api/listings?mine=1"), fetch("/api/orders")]);
-    if (a.ok) setListings((await a.json()).listings);
-    if (b.ok) setSales((await b.json()).sales);
+    const [a, b] = await Promise.all([api("/api/listings?mine=1"), api("/api/orders")]);
+    if (a.ok) setListings(a.data.listings || []);
+    if (b.ok) setSales(b.data.sales || []);
     setLoading(false);
   }, []);
   useEffect(() => { if (user?.role === "seller") load(); else setLoading(false); }, [user, load]);
@@ -30,7 +32,7 @@ export default function Seller() {
   if (!user)
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">Seller dashboard</h1>
+        <h1 className="display text-4xl">Seller dashboard</h1>
         <p className="mt-2 text-sm text-muted">Log in with your seller account.</p>
         <Link href="/login?next=/seller" className="btn btn-primary mt-6">Log in</Link>
       </div>
@@ -38,7 +40,7 @@ export default function Seller() {
   if (user.role !== "seller")
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">Sellers only</h1>
+        <h1 className="display text-4xl">Sellers only</h1>
         <p className="mt-2 text-sm text-muted">This area is for approved sellers. Seller accounts are created by our team.</p>
         <Link href="/" className="btn btn-primary mt-6">Back home</Link>
       </div>
@@ -46,15 +48,17 @@ export default function Seller() {
 
   const withdraw = async (l) => {
     if (!confirm(`Withdraw "${l.title}"?`)) return;
-    await fetch(`/api/listings/${l._id}`, { method: "DELETE" });
+    const { ok, data } = await api(`/api/listings/${l._id}`, { method: "DELETE" });
+    if (!ok) alert(data.error || "Couldn't withdraw the product.");
     load();
   };
   const ship = async (orderId, itemId) => {
-    await fetch(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemId, status: "shipped" }) });
+    const { ok, data } = await api(`/api/orders/${orderId}`, { method: "PATCH", body: { itemId, status: "shipped" } });
+    if (!ok) alert(data.error || "Couldn't mark it shipped.");
     load();
   };
 
-  const saleItems = sales.flatMap((o) => o.items.map((i) => ({ ...i, orderId: o._id, shipping: o.shipping, createdAt: o.createdAt })));
+  const saleItems = sales.flatMap((o) => o.items.map((i) => ({ ...i, orderId: o._id, shipping: o.shipping, createdAt: o.createdAt, testMode: o.testMode })));
   const toShip = saleItems.filter((i) => i.status === "paid").length;
   const stats = [
     ["Under review", listings.filter((l) => l.status === "pending").length],
@@ -68,7 +72,7 @@ export default function Seller() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="rounded-full bg-lime px-3 py-1 text-xs font-bold uppercase tracking-widest ring-1 ring-ink">Seller</span>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">{user.name}&apos;s shop</h1>
+          <h1 className="display mt-3 text-5xl sm:text-6xl">{user.name}&apos;s shop</h1>
           <p className="mt-2 max-w-lg text-sm text-muted">Submit products with your price. We review them, may adjust the price, and publish them to the store.</p>
         </div>
         <Link href="/sell" className="btn btn-lime px-6 py-3">+ Add product</Link>
@@ -106,7 +110,7 @@ export default function Seller() {
           return (
             <div key={l._id} className="card p-3">
               <div className="flex flex-wrap items-center gap-4">
-                <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-line">
+                <div className="h-20 w-16 shrink-0 overflow-hidden rounded-none bg-line">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/api/listings/${l._id}/image/0`} alt="" className="h-full w-full object-cover" />
                 </div>
@@ -123,7 +127,7 @@ export default function Seller() {
                 )}
               </div>
               {l.status === "rejected" && (
-                <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+                <p className="mt-3 rounded-none bg-red-50 p-3 text-sm text-red-700">
                   Not approved{l.adminNote ? `: ${l.adminNote}` : "."} You can withdraw it and submit a new one.
                 </p>
               )}
@@ -136,16 +140,17 @@ export default function Seller() {
         )}
         {tab === "orders" && saleItems.map((i) => (
           <div key={i._id} className="card p-5">
+            {i.testMode && <TestOrderBanner forSeller />}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-semibold">{i.title}</p>
-                <p className="text-sm text-muted">{money(i.price)} · {new Date(i.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-muted">Order {orderNo(i.orderId)} · {money(i.price)} · {new Date(i.createdAt).toLocaleDateString()}</p>
               </div>
               <OrderStatus status={i.status} />
               {i.status === "paid" && <button onClick={() => ship(i.orderId, i._id)} className="btn btn-lime px-4 py-2">Mark shipped</button>}
             </div>
-            <p className="mt-3 rounded-xl bg-paper p-3 text-sm text-muted">
-              <span className="font-semibold text-ink">Ship to:</span> {i.shipping.name}, {i.shipping.address}, {i.shipping.city} {i.shipping.zip} {i.shipping.country}
+            <p className="mt-3 rounded-none bg-paper p-3 text-sm text-muted">
+              <span className="font-semibold text-ink">Ship to:</span> {formatAddress(i.shipping)}{i.shipping.phone && <> · <a href={`tel:${i.shipping.phone}`} className="font-semibold text-ink underline">{i.shipping.phone}</a></>}
             </p>
           </div>
         ))}

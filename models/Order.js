@@ -15,8 +15,9 @@ const OrderSchema = new mongoose.Schema(
     subtotal: Number,
     shippingFee: Number,
     total: Number,
-    shipping: { name: String, address: String, city: String, zip: String, country: String },
+    shipping: { name: String, phone: String, address: String, city: String, state: String, zip: String, country: String },
     paymentRef: String, // fake test-mode reference; no card data is stored
+    testMode: { type: Boolean, default: true }, // true = no real payment was taken; do not ship
     status: { type: String, default: "paid" },
   },
   { timestamps: true }

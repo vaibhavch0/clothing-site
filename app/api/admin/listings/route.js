@@ -12,7 +12,7 @@ export async function GET(req) {
       .select("-images")
       .populate("seller", "name email")
       .sort({ createdAt: -1 })
-      .limit(200)
+      .limit(1000)
       .lean();
     return Response.json({ listings });
   } catch (e) {

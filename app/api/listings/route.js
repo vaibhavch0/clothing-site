@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
-import { buildListingQuery, buildSort } from "@/lib/queries";
+import { buildListingQuery, buildSort, PUBLIC_FIELDS } from "@/lib/queries";
 import { CATEGORIES, SIZES } from "@/lib/constants";
 import { isSafeImage } from "@/lib/validate";
 import Listing from "@/models/Listing";
@@ -10,12 +10,14 @@ export async function GET(req) {
   try {
     const sp = Object.fromEntries(new URL(req.url).searchParams);
     let query = buildListingQuery(sp);
+    let fields = PUBLIC_FIELDS;
     if (sp.mine) {
+      fields = "-images"; // a seller may see their own asking price and admin notes
       const s = await requireRole("seller");
       if (!s) return Response.json({ error: "Seller access only" }, { status: 403 });
       query = { seller: s.id };
     } else await connectDB();
-    const listings = await Listing.find(query).select("-images").sort(buildSort(sp.sort)).limit(60).lean();
+    const listings = await Listing.find(query).select(fields).sort(buildSort(sp.sort)).limit(60).lean();
     return Response.json({ listings });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });

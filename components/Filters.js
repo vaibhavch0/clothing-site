@@ -37,12 +37,13 @@ export default function Filters({ count }) {
   const set = (patch) => {
     const p = new URLSearchParams(sp.toString());
     Object.entries(patch).forEach(([k, v]) => (v ? p.set(k, v) : p.delete(k)));
+    p.delete("page"); // new filters start from page 1
     router.push(`/shop?${p.toString()}`);
   };
   const cat = sp.get("category");
   const size = sp.get("size");
   const sale = sp.get("sale");
-  const active = [...sp.keys()].filter((k) => k !== "sort").length;
+  const active = [...sp.keys()].filter((k) => k !== "sort" && k !== "page").length;
 
   return (
     <div>

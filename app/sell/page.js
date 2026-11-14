@@ -1,10 +1,14 @@
 "use client";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/Providers";
 import { CATEGORIES, SIZES, money } from "@/lib/constants";
 
+// Shrinks a photo to <=1000px and re-encodes as JPEG, lowering quality until it fits the
+// server's per-photo limit (so 4 photos always stay under Vercel's request size cap).
+const MAX_CHARS = 950_000;
 function resize(file, max = 1000, quality = 0.82) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -16,7 +20,10 @@ function resize(file, max = 1000, quality = 0.82) {
       c.height = Math.round(img.height * scale);
       c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url);
-      resolve(c.toDataURL("image/jpeg", quality));
+      let q = quality;
+      let out = c.toDataURL("image/jpeg", q);
+      while (out.length > MAX_CHARS && q > 0.4) { q -= 0.1; out = c.toDataURL("image/jpeg", q); }
+      resolve(out);
     };
     img.onerror = reject;
     img.src = url;
@@ -36,7 +43,7 @@ export default function Sell() {
   if (!user)
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">Seller login</h1>
+        <h1 className="display text-4xl">Seller login</h1>
         <p className="mt-2 text-sm text-muted">Log in with the seller account we gave you.</p>
         <Link href="/login?next=/sell" className="btn btn-primary mt-6">Log in</Link>
       </div>
@@ -45,7 +52,7 @@ export default function Sell() {
   if (user.role !== "seller")
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">Sellers only</h1>
+        <h1 className="display text-4xl">Sellers only</h1>
         <p className="mt-2 text-sm text-muted">This page is for approved sellers. Accounts are created by our team.</p>
         <Link href="/" className="btn btn-primary mt-6">Back home</Link>
       </div>
@@ -64,21 +71,16 @@ export default function Sell() {
     e.preventDefault();
     setErr("");
     setBusy(true);
-    const res = await fetch("/api/listings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...f, images }),
-    });
-    const data = await res.json();
+    const { ok, data } = await api("/api/listings", { method: "POST", body: { ...f, images } });
     setBusy(false);
-    if (!res.ok) return setErr(data.error || "Something went wrong.");
+    if (!ok) return setErr(data.error || "Something went wrong.");
     router.push("/seller");
     router.refresh();
   };
 
   return (
     <div className="py-10">
-      <h1 className="text-4xl font-bold sm:text-5xl">Add a product</h1>
+      <h1 className="display text-5xl sm:text-6xl">Add a product</h1>
       <p className="mt-2 text-muted">Submit your product and price. Our team reviews it, may adjust the price, then publishes it to the store.</p>
 
       <form onSubmit={submit} className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
@@ -87,7 +89,7 @@ export default function Sell() {
             <span className="label">Photos ({images.length}/4)</span>
             <div className="grid grid-cols-4 gap-3">
               {images.map((src, i) => (
-                <div key={i} className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-line">
+                <div key={i} className="group relative aspect-[4/5] overflow-hidden rounded-none bg-line">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="h-full w-full object-cover" />
                   {i === 0 && <span className="absolute bottom-1.5 left-1.5 rounded-full bg-lime px-2 py-0.5 text-[10px] font-bold">Cover</span>}
@@ -99,7 +101,7 @@ export default function Sell() {
                 <button type="button" onClick={() => fileRef.current.click()}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
-                  className="flex aspect-[4/5] flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-line text-muted transition hover:border-ink hover:text-ink">
+                  className="flex aspect-[4/5] flex-col items-center justify-center gap-1 rounded-none border-2 border-dashed border-line text-muted transition hover:border-ink hover:text-ink">
                   <span className="text-2xl">+</span>
                   <span className="text-[11px] font-semibold">Add photo</span>
                 </button>
@@ -138,7 +140,7 @@ export default function Sell() {
             <label className="label">Description</label>
             <textarea className="input min-h-28" maxLength={2000} placeholder="Fit, material, any flaws…" value={f.description} onChange={set("description")} />
           </div>
-          {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
+          {err && <p className="rounded-none bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
           <button disabled={busy} className="btn btn-primary w-full py-4 text-base">{busy ? "Submitting…" : "Submit for review"}</button>
         </div>
 
@@ -146,7 +148,7 @@ export default function Sell() {
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <span className="label">Live preview</span>
           <div className="card overflow-hidden p-3">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-line">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-none bg-line">
               {images[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={images[0]} alt="" className="h-full w-full object-cover" />

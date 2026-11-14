@@ -1,14 +1,15 @@
 "use client";
-import { useWishlist } from "./Providers";
+import { useToast, useWishlist } from "./Providers";
 
 export default function WishlistButton({ item, className = "" }) {
   const { wish, toggleWish } = useWishlist();
+  const notify = useToast();
   const on = wish.some((i) => i.id === item.id);
   return (
     <button
       type="button"
       aria-label={on ? "Remove from wishlist" : "Add to wishlist"}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWish(item); }}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWish(item); notify(on ? "Removed from wishlist" : "Saved to wishlist", on ? null : { href: "/wishlist", label: "View" }); }}
       className={`flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-soft backdrop-blur transition hover:scale-110 ${className}`}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill={on ? "#E4002B" : "none"} stroke={on ? "#E4002B" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/Providers";
 import ReviewCard from "@/components/ReviewCard";
 import OrderStatus from "@/components/OrderStatus";
+import { TestOrderBanner, formatAddress, orderNo } from "@/components/OrderBits";
 import { money } from "@/lib/constants";
 
 const BADGE = {
@@ -22,10 +24,10 @@ export default function Admin() {
   const [msg, setMsg] = useState("");
 
   const load = useCallback(async () => {
-    const [a, b, c] = await Promise.all([fetch("/api/admin/listings"), fetch("/api/admin/users"), fetch("/api/admin/orders")]);
-    if (a.ok) setListings((await a.json()).listings);
-    if (b.ok) setUsers((await b.json()).users);
-    if (c.ok) setOrders((await c.json()).orders);
+    const [a, b, c] = await Promise.all([api("/api/admin/listings"), api("/api/admin/users"), api("/api/admin/orders")]);
+    if (a.ok) setListings(a.data.listings || []);
+    if (b.ok) setUsers(b.data.users || []);
+    if (c.ok) setOrders(c.data.orders || []);
     setLoading(false);
   }, []);
   useEffect(() => { if (user?.role === "admin") load(); else setLoading(false); }, [user, load]);
@@ -33,14 +35,14 @@ export default function Admin() {
   if (!user)
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">Admin</h1>
+        <h1 className="display text-4xl">Admin</h1>
         <Link href="/login?next=/admin" className="btn btn-primary mt-6">Log in</Link>
       </div>
     );
   if (user.role !== "admin")
     return (
       <div className="card mx-auto my-20 max-w-md p-10 text-center">
-        <h1 className="text-3xl font-bold">Not allowed</h1>
+        <h1 className="display text-4xl">Not allowed</h1>
         <p className="mt-2 text-sm text-muted">This area is for administrators only.</p>
         <Link href="/" className="btn btn-primary mt-6">Back home</Link>
       </div>
@@ -52,24 +54,26 @@ export default function Admin() {
   const revenue = orders.reduce((a, o) => a + (o.subtotal || 0), 0);
 
   const act = async (l, body) => {
-    await fetch(`/api/admin/listings/${l._id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const { ok, data } = await api(`/api/admin/listings/${l._id}`, { method: "PATCH", body });
+    if (!ok) alert(data.error || "Couldn't update the product.");
     load();
   };
   const del = async (l) => {
     if (!confirm(`Permanently delete "${l.title}"?`)) return;
-    await fetch(`/api/admin/listings/${l._id}`, { method: "DELETE" });
+    const { ok, data } = await api(`/api/admin/listings/${l._id}`, { method: "DELETE" });
+    if (!ok) alert(data.error || "Couldn't delete the product.");
     load();
   };
   const setRole = async (u, role) => {
-    await fetch(`/api/admin/users/${u._id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role }) });
+    const { ok, data } = await api(`/api/admin/users/${u._id}`, { method: "PATCH", body: { role } });
+    if (!ok) alert(data.error || "Couldn't change the role.");
     load();
   };
   const createSeller = async (e) => {
     e.preventDefault();
     setMsg("");
-    const res = await fetch("/api/admin/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-    const data = await res.json();
-    if (!res.ok) return setMsg(data.error || "Failed");
+    const { ok, data } = await api("/api/admin/users", { method: "POST", body: form });
+    if (!ok) return setMsg(data.error || "Failed");
     setMsg(`Seller created. Share the email and password with ${form.name}.`);
     setForm({ name: "", email: "", password: "" });
     load();
@@ -81,7 +85,7 @@ export default function Admin() {
   return (
     <div className="py-10">
       <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">Admin</span>
-      <h1 className="mt-3 text-4xl font-bold sm:text-5xl">Control room</h1>
+      <h1 className="display mt-3 text-5xl sm:text-6xl">Control room</h1>
 
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map(([k, v]) => (
@@ -111,7 +115,7 @@ export default function Admin() {
         {tab === "products" && listings.map((l) => (
           <div key={l._id}>
             <div className="card flex flex-wrap items-center gap-4 p-3">
-              <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-line">
+              <div className="h-20 w-16 shrink-0 overflow-hidden rounded-none bg-line">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/api/listings/${l._id}/image/0`} alt="" className="h-full w-full object-cover" />
               </div>
@@ -143,7 +147,7 @@ export default function Admin() {
               {msg && <p className="text-sm text-muted sm:col-span-4">{msg}</p>}
             </form>
 
-            <h2 className="pt-4 text-xl font-bold">Sellers ({sellers.length})</h2>
+            <h2 className="display pt-6 text-2xl">Sellers ({sellers.length})</h2>
             {sellers.length === 0 && <p className="text-sm text-muted">No sellers yet. Create one above.</p>}
             {sellers.map((u) => (
               <div key={u._id} className="card flex flex-wrap items-center justify-between gap-3 p-4">
@@ -152,7 +156,7 @@ export default function Admin() {
               </div>
             ))}
 
-            <h2 className="pt-4 text-xl font-bold">Customers</h2>
+            <h2 className="display pt-6 text-2xl">Customers</h2>
             {users.filter((u) => u.role === "customer").map((u) => (
               <div key={u._id} className="card flex flex-wrap items-center justify-between gap-3 p-4">
                 <div><p className="font-semibold">{u.name}</p><p className="text-sm text-muted">{u.email}</p></div>
@@ -166,8 +170,9 @@ export default function Admin() {
         {tab === "orders" && !loading && orders.length === 0 && <div className="card p-12 text-center text-sm text-muted">No orders yet.</div>}
         {tab === "orders" && orders.map((o) => (
           <div key={o._id} className="card p-5">
+            {o.testMode !== false && <TestOrderBanner />}
             <div className="flex flex-wrap justify-between gap-2 text-sm">
-              <span className="font-semibold">{o.buyer?.name} <span className="font-normal text-muted">· {o.buyer?.email}</span></span>
+              <span className="font-semibold">{orderNo(o._id)} · {o.buyer?.name} <span className="font-normal text-muted">· {o.buyer?.email}</span></span>
               <span className="font-display font-bold">{money(o.total)} <span className="text-xs font-normal text-muted">{new Date(o.createdAt).toLocaleDateString()}</span></span>
             </div>
             <div className="mt-3 space-y-3">
@@ -178,7 +183,7 @@ export default function Admin() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 rounded-xl bg-paper p-3 text-xs text-muted">Ship to: {o.shipping.name}, {o.shipping.address}, {o.shipping.city} {o.shipping.zip}</p>
+            <p className="mt-3 rounded-none bg-paper p-3 text-xs text-muted">Ship to: {formatAddress(o.shipping)}{o.shipping.phone ? ` · ${o.shipping.phone}` : ""}</p>
           </div>
         ))}
       </div>

@@ -7,21 +7,25 @@
   body { @apply bg-white text-ink font-sans antialiased; }
   h1, h2, h3 { @apply font-display tracking-tight; }
   ::selection { background: #D6FF3F; color: #111; }
+  /* Visible focus for keyboard users only */
+  :focus-visible { outline: 2px solid #111; outline-offset: 2px; }
 }
 
 @layer components {
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[.97] disabled:opacity-50 disabled:pointer-events-none; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-none px-5 py-3 text-xs font-bold uppercase tracking-wider transition active:scale-[.97] disabled:opacity-50 disabled:pointer-events-none; }
   .btn-primary { @apply bg-ink text-white hover:bg-black/80; }
   .btn-lime { @apply bg-lime text-ink hover:bg-lime-dark; }
   .btn-ghost { @apply border border-line bg-white text-ink hover:border-ink; }
   .btn-white { @apply bg-white text-ink hover:bg-lime; }
-  .input { @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition placeholder:text-muted/70 focus:border-ink focus:ring-4 focus:ring-lime/40; }
+  .input { @apply w-full rounded-none border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition placeholder:text-muted/70 focus:border-ink focus:ring-4 focus:ring-lime/40; }
   .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted; }
   .chip { @apply inline-flex items-center rounded-full border border-line bg-white px-4 py-2 text-sm font-medium transition hover:border-ink; }
   .chip-active { @apply border-ink bg-ink text-white; }
-  .card { @apply rounded-3xl border border-line bg-card shadow-soft; }
+  .card { @apply border border-line bg-card; }
   /* Nike-style loud headline */
   .display { @apply font-display font-black uppercase leading-[.92] tracking-tighter; word-spacing: 0.14em; }
+  /* Product pages on phones: leave room so the sticky buy bar never hides the footer */
+  @media (max-width: 1023px) { body:has(.sticky-buy-bar) footer { padding-bottom: 5.5rem; } }
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }
