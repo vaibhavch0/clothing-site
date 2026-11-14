@@ -15,7 +15,7 @@
   .btn-lime { @apply bg-lime text-ink hover:bg-lime-dark; }
   .btn-ghost { @apply border border-line bg-white text-ink hover:border-ink; }
   .btn-white { @apply bg-white text-ink hover:bg-lime; }
-  .input { @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none transition placeholder:text-muted/70 focus:border-ink focus:ring-4 focus:ring-lime/40; }
+  .input { @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-base outline-none sm:text-sm transition placeholder:text-muted/70 focus:border-ink focus:ring-4 focus:ring-lime/40; }
   .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted; }
   .chip { @apply inline-flex items-center rounded-full border border-line bg-white px-4 py-2 text-sm font-medium transition hover:border-ink; }
   .chip-active { @apply border-ink bg-ink text-white; }

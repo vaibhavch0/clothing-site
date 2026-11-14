@@ -30,16 +30,16 @@ export default function Cart() {
         <div className="mt-2 h-1.5 bg-line"><div className="h-full bg-ink transition-all" style={{ width: `${Math.min(100, (subtotal / FREE_SHIPPING_MIN) * 100)}%` }} /></div>
       </div>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[1.6fr_1fr]">
         <div className="divide-y divide-line border-y border-line">
           {items.map((i) => (
-            <div key={i.id} className="flex items-center gap-5 py-5">
-              <Link href={`/listing/${i.id}`} className="h-32 w-24 shrink-0 overflow-hidden bg-line">
+            <div key={i.id} className="flex items-center gap-3 py-5 sm:gap-5">
+              <Link href={`/listing/${i.id}`} className="h-28 w-20 shrink-0 overflow-hidden bg-line sm:h-32 sm:w-24">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/api/listings/${i.id}/image/0`} alt="" className="h-full w-full object-cover" />
               </Link>
               <div className="min-w-0 flex-1">
-                <Link href={`/listing/${i.id}`} className="block truncate font-bold hover:underline">{i.title}</Link>
+                <Link href={`/listing/${i.id}`} className="line-clamp-2 font-bold hover:underline">{i.title}</Link>
                 <p className="mt-1 text-xs text-muted">Qty 1</p>
                 <button onClick={() => remove(i.id)} className="mt-3 text-xs font-bold underline underline-offset-4">Remove</button>
               </div>
@@ -48,7 +48,7 @@ export default function Cart() {
           ))}
         </div>
 
-        <div className="h-fit space-y-3 bg-paper p-6 lg:sticky lg:top-32">
+        <div className="h-fit space-y-3 bg-paper p-6 lg:sticky lg:top-24">
           <h2 className="display text-2xl">Order summary</h2>
           <div className="flex justify-between text-sm"><span className="text-muted">Subtotal</span><span>{money(subtotal)}</span></div>
           <div className="flex justify-between text-sm"><span className="text-muted">Shipping</span><span>{shipLabel(ship)}</span></div>

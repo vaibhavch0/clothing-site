@@ -10,6 +10,8 @@ export const metadata = {
   description: "Discover hand-picked new clothing.",
 };
 
+export const viewport = { width: "device-width", initialScale: 1, themeColor: "#111111" };
+
 export default async function RootLayout({ children }) {
   const session = await getSession();
   return (

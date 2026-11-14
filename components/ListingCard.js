@@ -17,7 +17,7 @@ export default function ListingCard({ l, className = "" }) {
           src={`/api/listings/${id}/image/0`}
           alt={l.title}
           loading="lazy"
-          className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
         />
         {l.imageCount > 1 && (
           // eslint-disable-next-line @next/next/no-img-element

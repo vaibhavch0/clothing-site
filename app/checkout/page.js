@@ -63,7 +63,7 @@ export default function Checkout() {
   return (
     <div className="py-10">
       <h1 className="text-4xl font-bold sm:text-5xl">Checkout</h1>
-      <form onSubmit={submit} className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_1fr]">
+      <form onSubmit={submit} className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
           <div className="card space-y-4 p-6 sm:p-8">
             <h2 className="text-xl font-bold">Shipping</h2>

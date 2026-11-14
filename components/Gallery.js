@@ -19,9 +19,9 @@ export default function Gallery({ id, count, title }) {
           ))}
         </div>
       )}
-      <div className="aspect-[3/4] flex-1 overflow-hidden bg-line">
+      <div className="relative aspect-[3/4] flex-1 overflow-hidden bg-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/api/listings/${id}/image/${i}`} alt={title} className="h-full w-full object-cover" />
+        <img src={`/api/listings/${id}/image/${i}`} alt={title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     </div>
   );

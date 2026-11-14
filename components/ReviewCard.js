@@ -40,9 +40,9 @@ export default function ReviewCard({ listing: l, onDone }) {
         <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
           {Array.from({ length: l.imageCount || 1 }).map((_, n) => (
             <a key={n} href={`/api/listings/${l._id}/image/${n}`} target="_blank" rel="noreferrer"
-              className="block aspect-[4/5] overflow-hidden rounded-2xl bg-line">
+              className="relative block aspect-[4/5] overflow-hidden rounded-2xl bg-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/api/listings/${l._id}/image/${n}`} alt="" className="h-full w-full object-cover" />
+              <img src={`/api/listings/${l._id}/image/${n}`} alt="" className="absolute inset-0 h-full w-full object-cover" />
             </a>
           ))}
         </div>

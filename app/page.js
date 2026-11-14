@@ -97,9 +97,9 @@ export default async function Home() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={`/api/listings/${item._id}/image/0`} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                 )}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 pt-16">
-                  <p className="display text-3xl text-white sm:text-4xl">{c}</p>
-                  <p className="mt-1 text-xs font-bold uppercase tracking-widest text-lime">Shop now →</p>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 pt-16 sm:p-5">
+                  <p className="display break-words text-[clamp(0.95rem,4.6vw,1.5rem)] text-white sm:text-3xl lg:text-4xl">{c}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-lime sm:text-xs">Shop now →</p>
                 </div>
               </Link>
             ))}

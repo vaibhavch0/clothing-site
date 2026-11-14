@@ -35,16 +35,17 @@ export default function Navbar() {
     );
 
   return (
-    <header className="sticky top-0 z-40 bg-white">
-      {/* Announcement bar */}
+    <>
+      {/* Announcement bar: scrolls away so phones keep more screen */}
       <div className="bg-ink px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
         Free shipping on orders over {money(FREE_SHIPPING_MIN)} <span className="mx-2 text-lime">●</span> Every piece reviewed by our team
       </div>
+      <header className="sticky top-0 z-40 bg-white">
 
       <div className="border-b border-line">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-8">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMenu(!menu)} className="-ml-2 rounded-full p-2 hover:bg-paper lg:hidden" aria-label="Menu">
+            <button onClick={() => setMenu(!menu)} className="-ml-2 rounded-full p-2.5 hover:bg-paper lg:hidden" aria-label="Menu">
               <Icon d={menu ? ["M6 6l12 12", "M18 6L6 18"] : ["M4 7h16", "M4 12h16", "M4 17h16"]} />
             </button>
             <Link href="/" className="font-display text-[22px] font-black uppercase tracking-tighter sm:text-[26px]">
@@ -118,6 +119,7 @@ export default function Navbar() {
           </div>
         )}
       </div>
-    </header>
+      </header>
+    </>
   );
 }

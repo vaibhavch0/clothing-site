@@ -22,9 +22,9 @@ export default function Wishlist() {
       <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
         {wish.map((w) => (
           <div key={w.id}>
-            <Link href={`/listing/${w.id}`} className="block aspect-[3/4] overflow-hidden bg-line">
+            <Link href={`/listing/${w.id}`} className="relative block aspect-[3/4] overflow-hidden bg-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/api/listings/${w.id}/image/0`} alt={w.title} className="h-full w-full object-cover" />
+              <img src={`/api/listings/${w.id}/image/0`} alt={w.title} className="absolute inset-0 h-full w-full object-cover" />
             </Link>
             <div className="mt-3 flex justify-between gap-2 text-[13px]"><p className="truncate font-semibold">{w.title}</p><p className="font-extrabold">{money(w.price)}</p></div>
             <div className="mt-3 flex gap-2">

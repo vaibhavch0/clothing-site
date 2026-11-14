@@ -37,10 +37,10 @@ export default async function ListingPage(props) {
         <Link href={`/shop?category=${l.category}`} className="hover:text-ink">{l.category}</Link>
       </nav>
 
-      <div className="mt-5 grid gap-10 lg:grid-cols-[1.25fr_1fr]">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[1.25fr_1fr]">
         <Gallery id={l._id} count={l.imageCount || 1} title={l.title} />
 
-        <div className="lg:sticky lg:top-32 lg:self-start">
+        <div className="lg:sticky lg:top-24 lg:self-start">
           {l.brand && <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-muted">{l.brand}</p>}
           <h1 className="display mt-2 text-4xl sm:text-5xl">{l.title}</h1>
           <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">

@@ -36,7 +36,7 @@ export default async function Shop(props) {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-10 lg:grid-cols-[250px_1fr]">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[250px_1fr]">
         <aside>
           <Suspense fallback={null}><Filters count={listings.length} /></Suspense>
         </aside>

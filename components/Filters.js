@@ -46,7 +46,7 @@ export default function Filters({ count }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3 lg:hidden">
+      <div className="flex flex-wrap items-center gap-3 lg:hidden">
         <button onClick={() => setShow(!show)} className="btn btn-ghost !rounded-none uppercase tracking-wider">
           Filters{active > 0 && ` (${active})`} {show ? "−" : "+"}
         </button>
@@ -108,7 +108,7 @@ export default function Filters({ count }) {
 
 export function SortSelect({ sp, set }) {
   return (
-    <select className="input !w-auto !rounded-none !py-2.5 text-xs font-bold uppercase tracking-wider" value={sp.get("sort") || ""} onChange={(e) => set({ sort: e.target.value })}>
+    <select className="input min-w-0 max-w-full flex-1 !rounded-none !py-2.5 text-base font-bold sm:!w-auto sm:flex-none sm:text-xs sm:uppercase sm:tracking-wider" value={sp.get("sort") || ""} onChange={(e) => set({ sort: e.target.value })}>
       <option value="">Newest</option>
       <option value="low">Price: low to high</option>
       <option value="high">Price: high to low</option>
