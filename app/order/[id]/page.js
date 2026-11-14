@@ -4,11 +4,12 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import Order from "@/models/Order";
-import { money } from "@/lib/constants";
+import { money, shipLabel } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
-export default async function OrderPage({ params }) {
+export default async function OrderPage(props) {
+  const params = await props.params;
   const s = await getSession();
   if (!s || !mongoose.isValidObjectId(params.id)) notFound();
   await connectDB();
@@ -24,7 +25,7 @@ export default async function OrderPage({ params }) {
           {o.items.map((i) => (
             <div key={String(i._id)} className="flex justify-between"><span>{i.title}</span><span>{money(i.price)}</span></div>
           ))}
-          <div className="flex justify-between border-t border-line pt-2 text-muted"><span>Shipping</span><span>{money(o.shippingFee)}</span></div>
+          <div className="flex justify-between border-t border-line pt-2 text-muted"><span>Shipping</span><span>{shipLabel(o.shippingFee)}</span></div>
           <div className="flex justify-between font-display text-lg font-bold"><span>Total</span><span>{money(o.total)}</span></div>
         </div>
         <p className="mt-6 rounded-2xl bg-paper p-4 text-left text-sm text-muted">

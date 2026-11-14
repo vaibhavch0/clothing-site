@@ -3,7 +3,8 @@ import { requireRole } from "@/lib/auth";
 import User from "@/models/User";
 
 // Promote a customer to seller, or remove seller access.
-export async function PATCH(req, { params }) {
+export async function PATCH(req, ctx) {
+  const params = await ctx.params;
   try {
     const admin = await requireRole("admin");
     if (!admin) return Response.json({ error: "Admin access only" }, { status: 403 });

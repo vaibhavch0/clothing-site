@@ -7,11 +7,13 @@ import Gallery from "@/components/Gallery";
 import ProductActions from "@/components/ProductActions";
 import ListingCard from "@/components/ListingCard";
 import { getSession } from "@/lib/auth";
-import { money, SHIPPING_FEE } from "@/lib/constants";
+import { priceInfo } from "@/lib/pricing";
+import { money, SHIPPING_FEE, FREE_SHIPPING_MIN } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
-export default async function ListingPage({ params }) {
+export default async function ListingPage(props) {
+  const params = await props.params;
   if (!mongoose.isValidObjectId(params.id)) notFound();
   await connectDB();
   const doc = await Listing.findById(params.id).select("-images").lean();
@@ -26,49 +28,59 @@ export default async function ListingPage({ params }) {
     )
   );
 
-  const details = [
-    ["Size", l.size],
-    ["Condition", l.condition],
-    ["Category", l.category],
-    l.brand && ["Brand", l.brand],
-  ].filter(Boolean);
+  const { mrp, pct, save } = priceInfo(l);
 
   return (
-    <div className="py-8">
-      <Link href="/shop" className="text-sm font-medium text-muted hover:text-ink">← Back to shop</Link>
-      <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_1fr]">
+    <div className="py-6 sm:py-8">
+      <nav className="text-xs text-muted">
+        <Link href="/" className="hover:text-ink">Home</Link> / <Link href="/shop" className="hover:text-ink">Shop</Link> /{" "}
+        <Link href={`/shop?category=${l.category}`} className="hover:text-ink">{l.category}</Link>
+      </nav>
+
+      <div className="mt-5 grid gap-10 lg:grid-cols-[1.25fr_1fr]">
         <Gallery id={l._id} count={l.imageCount || 1} title={l.title} />
-        <div className="lg:pt-4">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted">{l.brand || l.category}</p>
-          <h1 className="mt-2 text-4xl font-bold leading-tight sm:text-5xl">{l.title}</h1>
-          <p className="mt-4 font-display text-4xl font-bold">{money(l.price)}</p>
-          <p className="mt-1 text-xs text-muted">+ {money(SHIPPING_FEE)} shipping · test checkout</p>
+
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          {l.brand && <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-muted">{l.brand}</p>}
+          <h1 className="display mt-2 text-4xl sm:text-5xl">{l.title}</h1>
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <p className={`text-3xl font-extrabold ${mrp ? "text-sale" : ""}`}>{money(l.price)}</p>
+            {mrp && <p className="text-lg text-muted line-through">{money(mrp)}</p>}
+            {mrp && <span className="bg-sale px-2 py-1 text-[11px] font-extrabold uppercase tracking-widest text-white">{pct}% off</span>}
+          </div>
+          {mrp && <p className="mt-1 text-sm font-semibold text-sale">You save {money(save)}</p>}
+          <p className="mt-1 text-xs text-muted">
+            {l.price >= FREE_SHIPPING_MIN ? "Free shipping on this item" : `+ ${money(SHIPPING_FEE)} shipping · free over ${money(FREE_SHIPPING_MIN)}`}
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-6 border-y border-line py-4 text-sm">
+            <div><p className="text-[11px] font-bold uppercase tracking-widest text-muted">Size</p><p className="mt-1 inline-block border-2 border-ink px-3 py-1 font-bold">{l.size}</p></div>
+            <div><p className="text-[11px] font-bold uppercase tracking-widest text-muted">Category</p><p className="mt-1 py-1 font-bold">{l.category}</p></div>
+          </div>
 
           <div className="mt-6"><ProductActions listing={l} /></div>
 
-          <div className="mt-8 grid grid-cols-2 gap-3">
-            {details.map(([k, v]) => (
-              <div key={k} className="rounded-2xl border border-line bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">{k}</p>
-                <p className="mt-1 font-semibold">{v}</p>
-              </div>
-            ))}
+          <div className="mt-8 divide-y divide-line border-y border-line text-sm">
+            <details open className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-extrabold uppercase tracking-wider">
+                Description <span className="text-lg font-normal transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 whitespace-pre-line text-muted">{l.description || "No description provided."}</p>
+            </details>
+            <details className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-extrabold uppercase tracking-wider">
+                Shipping <span className="text-lg font-normal transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 text-muted">Flat {money(SHIPPING_FEE)} shipping, free on orders over {money(FREE_SHIPPING_MIN)}. Each listing is a single piece, so once it sells it's gone.</p>
+            </details>
           </div>
-
-          {l.description && (
-            <div className="mt-8">
-              <h2 className="text-lg font-bold">Description</h2>
-              <p className="mt-2 whitespace-pre-line text-muted">{l.description}</p>
-            </div>
-          )}
-
         </div>
       </div>
 
       {more.length > 0 && (
-        <section className="mt-20">
-          <h2 className="mb-6 text-2xl font-bold">More in {l.category}</h2>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">
+        <section className="mt-24">
+          <h2 className="display mb-6 text-3xl sm:text-4xl">You may also like</h2>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
             {more.map((m) => <ListingCard key={m._id} l={m} />)}
           </div>
         </section>

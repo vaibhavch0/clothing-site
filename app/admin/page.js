@@ -117,7 +117,7 @@ export default function Admin() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{l.title}</p>
-                <p className="text-sm text-muted">by {l.seller?.name || "—"} · asked {money(l.sellerPrice ?? l.price)} · store {money(l.price)}</p>
+                <p className="text-sm text-muted">by {l.seller?.name || "—"} · asked {money(l.sellerPrice ?? l.price)} · store {money(l.price)}{l.mrp > l.price && <span className="font-bold text-sale"> · {Math.round((1 - l.price / l.mrp) * 100)}% off (MRP {money(l.mrp)})</span>}</p>
               </div>
               <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${BADGE[l.status]}`}>{l.status}</span>
               <div className="flex flex-wrap gap-2">
@@ -138,7 +138,7 @@ export default function Admin() {
             <form onSubmit={createSeller} className="card grid gap-3 p-5 sm:grid-cols-4 sm:items-end">
               <div><label className="label">Seller name</label><input className="input" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
               <div><label className="label">Email</label><input className="input" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-              <div><label className="label">Password</label><input className="input" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+              <div><label className="label">Password</label><input className="input" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
               <button className="btn btn-lime py-3">+ Create seller</button>
               {msg && <p className="text-sm text-muted sm:col-span-4">{msg}</p>}
             </form>

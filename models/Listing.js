@@ -10,9 +10,11 @@ const ListingSchema = new mongoose.Schema(
     brand: { type: String, trim: true, maxlength: 60, default: "" },
     category: { type: String, required: true },
     size: { type: String, required: true },
-    condition: { type: String, required: true },
+    condition: { type: String, default: "" }, // legacy field, no longer used
     sellerPrice: { type: Number, min: 1, max: 100000 }, // what the seller asked for
-    price: { type: Number, required: true, min: 1, max: 100000 }, // customer-facing price, set by admin
+    mrp: { type: Number, min: 1, max: 100000 }, // original price, shown struck-through when discounted
+    discountPercent: { type: Number, min: 0, max: 90, default: 0 },
+    price: { type: Number, required: true, min: 1, max: 100000 }, // final customer price = mrp minus discount, set by admin
     images: { type: [String], default: [] }, // data URLs, served via /api/listings/:id/image/:n
     imageCount: { type: Number, default: 0 },
     status: { type: String, enum: ["pending", "available", "sold", "rejected"], default: "pending", index: true },

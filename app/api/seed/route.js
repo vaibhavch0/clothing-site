@@ -39,12 +39,11 @@ export async function GET() {
         role: "seller",
       });
     await Listing.insertMany(
-      DEMO.map(([title, category, size, condition, price, brand, a, b, accent]) => ({
+      DEMO.map(([title, category, size, _unused, price, brand, a, b, accent]) => ({
         seller: seller._id,
         title,
         category,
         size,
-        condition,
         price,
         sellerPrice: Math.max(1, price - 200),
         status: "available",

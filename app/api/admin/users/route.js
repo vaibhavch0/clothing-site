@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { requireRole } from "@/lib/auth";
+import { isEmail, passwordOk, MIN_PASSWORD } from "@/lib/validate";
 import User from "@/models/User";
 import Listing from "@/models/Listing";
 
@@ -20,8 +21,8 @@ export async function POST(req) {
   try {
     if (!(await requireRole("admin"))) return Response.json({ error: "Admin access only" }, { status: 403 });
     const { name, email, password } = await req.json();
-    if (!name?.trim() || !email?.includes("@") || (password || "").length < 6)
-      return Response.json({ error: "Enter a name, valid email and a password of 6+ characters." }, { status: 400 });
+    if (typeof name !== "string" || !name.trim() || !isEmail(email) || !passwordOk(password))
+      return Response.json({ error: `Enter a name, valid email and a password of ${MIN_PASSWORD}+ characters.` }, { status: 400 });
     if (await User.findOne({ email: email.toLowerCase() }))
       return Response.json({ error: "That email already has an account. Use \"Make seller\" on it instead." }, { status: 409 });
     const u = await User.create({ name, email, passwordHash: await bcrypt.hash(password, 10), role: "seller" });

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useCart } from "@/components/Providers";
-import { money, SHIPPING_FEE } from "@/lib/constants";
+import { money, shippingFor, shipLabel } from "@/lib/constants";
 
 export default function Checkout() {
   const { user } = useAuth();
@@ -14,6 +14,7 @@ export default function Checkout() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const subtotal = items.reduce((a, i) => a + i.price, 0);
+  const ship = shippingFor(subtotal);
 
   if (!ready) return <div className="py-20" />;
   if (!user)
@@ -24,6 +25,14 @@ export default function Checkout() {
           <Link href="/login?next=/checkout" className="btn btn-primary">Log in</Link>
           <Link href="/signup?next=/checkout" className="btn btn-ghost">Sign up</Link>
         </div>
+      </div>
+    );
+  if (user.role !== "customer")
+    return (
+      <div className="card mx-auto my-20 max-w-md p-10 text-center">
+        <h1 className="text-3xl font-bold">Customers only</h1>
+        <p className="mt-2 text-sm text-muted">Only customer accounts can place orders. Log out and sign in with a customer account to check out.</p>
+        <Link href="/" className="btn btn-primary mt-6">Back home</Link>
       </div>
     );
   if (!items.length)
@@ -88,10 +97,10 @@ export default function Checkout() {
               <span className="truncate">{i.title}</span><span>{money(i.price)}</span>
             </div>
           ))}
-          <div className="flex justify-between border-t border-line pt-3 text-sm"><span className="text-muted">Shipping</span><span>{money(SHIPPING_FEE)}</span></div>
-          <div className="flex justify-between font-display text-lg font-bold"><span>Total</span><span>{money(subtotal + SHIPPING_FEE)}</span></div>
+          <div className="flex justify-between border-t border-line pt-3 text-sm"><span className="text-muted">Shipping</span><span>{shipLabel(ship)}</span></div>
+          <div className="flex justify-between font-display text-lg font-bold"><span>Total</span><span>{money(subtotal + ship)}</span></div>
           {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
-          <button disabled={busy} className="btn btn-lime w-full py-3.5">{busy ? "Processing…" : `Pay ${money(subtotal + SHIPPING_FEE)}`}</button>
+          <button disabled={busy} className="btn btn-lime w-full py-3.5">{busy ? "Processing…" : `Pay ${money(subtotal + ship)}`}</button>
         </div>
       </form>
     </div>

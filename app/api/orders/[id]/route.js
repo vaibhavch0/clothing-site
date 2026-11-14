@@ -4,7 +4,8 @@ import { getSession } from "@/lib/auth";
 import Order from "@/models/Order";
 
 // Seller marks an item "shipped"; buyer confirms "delivered" once it has shipped.
-export async function PATCH(req, { params }) {
+export async function PATCH(req, ctx) {
+  const params = await ctx.params;
   try {
     const s = await getSession();
     if (!s) return Response.json({ error: "Not signed in" }, { status: 401 });

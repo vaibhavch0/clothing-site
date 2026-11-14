@@ -4,7 +4,8 @@ import Listing from "@/models/Listing";
 
 // Sellers can only withdraw their own submissions that aren't live yet.
 // Price/status changes are the admin's job (see /api/admin/listings).
-export async function DELETE(_req, { params }) {
+export async function DELETE(_req, ctx) {
+  const params = await ctx.params;
   if (!mongoose.isValidObjectId(params.id)) return Response.json({ error: "Not found" }, { status: 404 });
   const s = await requireRole("seller");
   if (!s) return Response.json({ error: "Seller access only" }, { status: 403 });

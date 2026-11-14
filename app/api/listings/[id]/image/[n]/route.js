@@ -3,7 +3,8 @@ import { connectDB } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import Listing from "@/models/Listing";
 
-export async function GET(_req, { params }) {
+export async function GET(_req, ctx) {
+  const params = await ctx.params;
   try {
     if (!mongoose.isValidObjectId(params.id)) return new Response("Not found", { status: 404 });
     await connectDB();
@@ -23,7 +24,12 @@ export async function GET(_req, { params }) {
     if (!m) return new Response("Not found", { status: 404 });
     const body = /;base64/i.test(m[2]) ? Buffer.from(m[3], "base64") : Buffer.from(decodeURIComponent(m[3]));
     return new Response(body, {
-      headers: { "Content-Type": m[1], "Cache-Control": live ? "public, max-age=86400" : "private, max-age=60" },
+      headers: {
+        "Content-Type": m[1],
+        "Cache-Control": live ? "public, max-age=86400" : "private, max-age=60",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      },
     });
   } catch {
     return new Response("Error", { status: 500 });

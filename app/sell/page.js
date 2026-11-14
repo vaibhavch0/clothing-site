@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/Providers";
-import { CATEGORIES, SIZES, CONDITIONS, money } from "@/lib/constants";
+import { CATEGORIES, SIZES, money } from "@/lib/constants";
 
 function resize(file, max = 1000, quality = 0.82) {
   return new Promise((resolve, reject) => {
@@ -28,7 +28,7 @@ export default function Sell() {
   const router = useRouter();
   const fileRef = useRef();
   const [images, setImages] = useState([]);
-  const [f, setF] = useState({ title: "", brand: "", category: "", size: "", condition: "", price: "", description: "" });
+  const [f, setF] = useState({ title: "", brand: "", category: "", size: "", price: "", description: "" });
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
@@ -110,7 +110,7 @@ export default function Sell() {
 
           <div>
             <label className="label">Title</label>
-            <input className="input" required maxLength={100} placeholder="e.g. Vintage denim jacket" value={f.title} onChange={set("title")} />
+            <input className="input" required maxLength={100} placeholder="e.g. Denim jacket" value={f.title} onChange={set("title")} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -132,15 +132,6 @@ export default function Sell() {
               <select className="input" required value={f.size} onChange={set("size")}>
                 <option value="">Select…</option>{SIZES.map((c) => <option key={c}>{c}</option>)}
               </select>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="label">Condition</label>
-              <div className="flex flex-wrap gap-2">
-                {CONDITIONS.map((c) => (
-                  <button type="button" key={c} onClick={() => setF({ ...f, condition: c })}
-                    className={`chip ${f.condition === c ? "chip-active" : ""}`}>{c}</button>
-                ))}
-              </div>
             </div>
           </div>
           <div>
@@ -167,7 +158,7 @@ export default function Sell() {
             <div className="flex items-start justify-between gap-3 px-2 pb-2 pt-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{f.title || "Item title"}</p>
-                <p className="truncate text-xs text-muted">{[f.brand, f.condition].filter(Boolean).join(" · ") || "Brand · Condition"}</p>
+                <p className="truncate text-xs text-muted">{f.brand || "Brand"}</p>
               </div>
               <p className="font-display font-bold">{money(f.price || 0)}</p>
             </div>

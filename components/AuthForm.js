@@ -47,7 +47,7 @@ export default function AuthForm({ mode }) {
           <div><label className="label">Email</label>
             <input className="input" type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
           <div><label className="label">Password</label>
-            <input className="input" type="password" required minLength={6} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
+            <input className="input" type="password" required minLength={8} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>
           {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
           <button disabled={busy} className="btn btn-primary w-full py-3.5">{busy ? "…" : signup ? "Create account" : "Log in"}</button>
         </form>
